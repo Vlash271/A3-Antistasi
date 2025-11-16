@@ -1,5 +1,6 @@
 class mapInfo {
     #include "Antistasi_Altis.Altis\mapInfo.hpp"
+    #include "Antistasi_bozcaada.bozcaada\mapInfo.hpp"
     #include "Antistasi_cam_lao_nam.cam_lao_nam\mapInfo.hpp"
     #include "Antistasi_chernarus.chernarus\mapInfo.hpp"
     #include "Antistasi_chernarus_summer.chernarus_summer\mapInfo.hpp"

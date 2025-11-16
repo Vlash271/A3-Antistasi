@@ -130,6 +130,18 @@
         <Turkish>Antistasi - Anizay'ın Kurtuluşu</Turkish>
         <Chinesesimp>Antistasi - 解放 Anizay</Chinesesimp>
       </Key>
+      <Key ID="STR_antistasi_mission_info_bozcaada_blurb_text"
+        <Original>Turkey in the sun.</Original>
+      </Key>
+      <Key ID="STR_antistasi_mission_info_bozcaada_description_text">
+        <Original>Be the Resistance Leader. Fight against a superior enemy in technology, number, assets and vehicles. Use guerrilla tactics in a totally dynamic world, with around 18 sidemissions, everywhere, anytime, anything.</Original>
+        </Key>
+      <Key ID="STR_antistasi_mission_info_bozcaada_mapname_short_text">
+        <Original>Antistasi Bozcaada</Original>
+      </Key>
+      <Key ID="STR_antistasi_mission_info_bozcaada_mapname_text">
+        <Original>Antistasi - Liberation of Bozcaada</Original>
+      </Key>
       <Key ID="STR_antistasi_mission_info_cam_lao_nam_blurb_text">
         <Original>Tree? Which tree?!?</Original>
         <German>Bäume? Welche Bäume?</German>

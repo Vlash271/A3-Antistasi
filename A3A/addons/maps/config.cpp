@@ -28,6 +28,7 @@ class CfgMissions
     class MPMissions
     { // mission folder names need to be `Antistasi_{Map name}.{Map name}`
         A3A_Mission(Altis)
+        A3A_Mission(bozcaada)
         A3A_Mission(cam_lao_nam)
         A3A_Mission(chernarus)
         A3A_Mission(chernarus_summer)

@@ -1,5 +1,6 @@
 class NavGrid {
     Altis = QPATHTOFOLDER(Antistasi_Altis.Altis\navGrid.sqf);
+    bozcaada = QPATHTOFOLDER(Antistasi_bozcaada.bozcaada\navGrid.sqf);
     cam_lao_nam = QPATHTOFOLDER(Antistasi_cam_lao_nam.cam_lao_nam\navGrid.sqf);
     chernarus = QPATHTOFOLDER(Antistasi_chernarus.chernarus\navGrid.sqf);
     chernarus_summer = QPATHTOFOLDER(Antistasi_chernarus_summer.chernarus_summer\navGrid.sqf);
