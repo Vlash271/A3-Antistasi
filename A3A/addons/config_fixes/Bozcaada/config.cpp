@@ -35,13 +35,13 @@ class CfgWorlds {
             class a3a_North {
                 angle = 0;
                 name = "Merkez North";
-                position[] = {14108.9,12248.8};
+                position[] = {14099.2,12324.7};
                 radiusA = 150;
                 radiusB = 150;
                 type = "NameVillage";
 
             };
-            class Merkez {
+            class a3a_South {
                 angle = 0;
                 name = "Merkez South";
                 position[] = {14333.1,11919.3};

@@ -1,11 +1,23 @@
 class bozcaada {
-	population[] = {
+	population[] = { 
+	{"merkez_city",537},
+	{"a3a_Tekirbahce",27},
+	{"a3a_North",498},
+	{"a3a_South",366},
+	{"a3a_Outskirts",263},
+	{"a3a_vineyards",75},
+	{"a3a_Sulubahce",121}
 	};
-	disabledTowns[] = {}; //no towns that need to be disabled
+	disabledTowns[] = {"merkez_city"}; 
 	antennas[] = {
+		{12836.6,10356.5,0.0119171},{12837.1,10356.1,0.0289001},
+		{12820.8,8506.88,1.52588e-05},{7671.17,12459.7,8.39233e-05},
+		{7671.17,12459.7,-0.000488281},{12777.8,12908.4,0.576645},
+		{14565.1,11960.3,0.760006}
 	};
-	antennasBlacklistIndex[] = {};
+	antennasBlacklistIndex[] = {1,3,6};
 	banks[] = {
+		{14120,12003,0}
 	};
 	garrison[] = {
 	};
