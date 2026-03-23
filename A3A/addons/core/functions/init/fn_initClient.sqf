@@ -26,7 +26,6 @@ if (!isNil "serverInitDone" and !isNil "A3A_utilityItemHM") then {
 };
 
 if (!requiredVersion QUOTE(REQUIRED_VERSION)) exitWith { Error("Arma version is out of date") };
-if (call A3A_fnc_modBlacklist) exitWith {};
 
 //Disables rabbits and snakes, because they cause the log to be filled with "20:06:39 Ref to nonnetwork object Agent 0xf3b4a0c0"
 //Can re-enable them if we find the source of the bug.
@@ -63,24 +62,22 @@ if !(isServer) then {
         0 spawn A3A_fnc_garrisonOpLoop;
     };
 
-    if ((isClass (configfile >> "CBA_Extended_EventHandlers")) && (
-        isClass (configfile >> "CfgPatches" >> "lambs_danger"))) then {
-        // disable lambs danger fsm entrypoint
-        ["CAManBase", "InitPost", {
-            params ["_unit"];
-            (group _unit) setVariable ["lambs_danger_disableGroupAI", true];
-            _unit setVariable ["lambs_danger_disableAI", true];
-        }] call CBA_fnc_addClassEventHandler;
-    };
 };
 
 // Server/client version check
-waitUntil { sleep 0.1; !isNil "initZonesDone" };
+waitUntil { sleep 0.1; (getClientState in ["NONE", "BRIEFING READ"]) and !isNil "initZonesDone" };
 if (isNil "A3A_serverVersion") then { A3A_serverVersion = "pre-3.3" };
-if (A3A_clientVersion != A3A_serverVersion) exitWith {
+if (A3A_clientVersion != A3A_serverVersion) then {
     private _errorStr = format [localize "STR_A3A_feedback_serverinfo_mismatch", A3A_serverVersion, A3A_clientVersion];
-    [localize "STR_A3A_feedback_serverinfo", _errorStr] call A3A_fnc_customHint;
+    Error_2("Version mismatch: Server %1, client %2", A3A_serverVersion, A3A_clientVersion);
+    localize "STR_A3A_feedback_serverinfo" hintC parseText _errorStr;
+    waitUntil {sleep 0.01; isNull findDisplay 72};
+    hintSilent "";
 };
+
+// Should be called after server sends A3A_serverBadMods
+// Blocks until the hintCs are done if it's a real client
+[] call A3A_fnc_modBlacklist;
 
 // Show server startup state hints
 if (isNil "A3A_startupState") then { A3A_startupState = "waitserver" };
@@ -112,7 +109,7 @@ if (!isServer) then {
 
 // Headless clients register with server and bail out at this point
 if (!isServer and !hasInterface) exitWith {
-
+    if (A3A_clientVersion != A3A_serverVersion) exitWith {};            // Do not use HCs that have a version mismatch
     player setPosATL (markerPos respawnTeamPlayer vectorAdd [-100, -100, 0]);
     [clientOwner] remoteExecCall ["A3A_fnc_addHC",2];
 };
@@ -133,10 +130,10 @@ player setVariable ["punish",0,true];
 player setVariable ["eligible",player call A3A_fnc_isMember,true];
 player setVariable ["A3A_playerUID",getPlayerUID player,true];			// Mark so that commander routines know for remote-controlling
 
-A3A_GUIDevPreview = profileNamespace getVariable ["AntistasiUseNewUI", true];
 A3A_drawBuilderIcons = false; // manage visibility of builder interactions
 A3A_showBuilderActions = false;
 A3A_hideInfobarHints = false;
+
 musicON = false;
 recruitCooldown = 0;			//Prevents units being recruited too soon after being dismissed.
 incomeRep = false;
@@ -175,50 +172,9 @@ if (isNil "ace_noradio_enabled" or {!ace_noradio_enabled}) then {
 
 player setvariable ["compromised",0];
 
-// Install the non respawn-persistent client event handlers
+// Install of the variables and event handlers that we need for a joining player
+call A3A_fnc_newPlayerSetup;
 call A3A_fnc_installClientEH;
-
-// These are respawn-persistent so we install them here
-player addEventHandler ["GetInMan", {
-    params ["_unit", "_role", "_veh", "_turret"];
-    _exit = false;
-    if !([player] call A3A_fnc_isMember) then {
-        if (!isNil {_veh getVariable "A3A_locked"}) then {
-            _owner = _veh getVariable "ownerX";
-            if ({getPlayerUID _x == _owner} count (units group player) == 0) then {
-                [localize "STR_A3A_fn_init_initclient_warning", localize "STR_A3A_fn_init_initclient_vehlocked"] call A3A_fnc_customHint;
-                moveOut _unit;
-                _exit = true;
-            };
-        };
-    };
-    if (!_exit) then {
-        if ((typeOf _veh) in undercoverVehicles) then {
-            if !(_veh getVariable ["A3A_reported", false]) then {
-                [] spawn A3A_fnc_goUndercover;
-            };
-        };
-        if (_veh isKindOf "Air") then {
-            Debug_2("Installing airspace control for player %1, vehicle %2", _unit, typeof _veh);
-            private _handle = [_unit, _veh] spawn A3A_fnc_airspaceControl;
-            _unit setVariable ["airspaceControlHandle", _handle];
-        };
-    };
-}];
-
-player addEventHandler ["GetOutMan", {
-    params ["_unit", "_role", "_veh", "_turret"];
-    Debug_2("Terminating airspace control for player %1, vehicle %2", _unit, typeof _veh);
-    private _handle = _unit getVariable ["airspaceControlHandle", scriptNull];
-    if (!isNull _handle) then { terminate _handle };
-}];
-
-player addEventHandler ["Killed", {
-    [-1, 0] remoteExecCall ["A3A_fnc_resourcesFIA", 2];
-}];
-
-// Prevent players getting shot by their own AIs. EH is respawn-persistent
-player addEventHandler ["HandleRating", {0}];
 
 // Prevent squad icons showing in 3d display in high command
 addMissionEventHandler ["CommandModeChanged", {
@@ -291,8 +247,8 @@ GVAR(keys_battleMenu) = false; //initilize key flags to false
 boxX allowDamage false;			// hmm...
 boxX addAction [localize "STR_A3A_fn_init_initclient_addact_transfer", {[] spawn A3A_fnc_empty;}, 4,1.5,true,true,"","!unitIsUAV _this"];
 flagX allowDamage false;
-flagX addAction [localize "STR_A3A_fn_init_initclient_addact_recruit", { if ([getPosATL player] call A3A_fnc_enemyNearCheck) then {[localize "STR_A3A_fn_init_initclient_recunit", localize "STR_A3A_fn_init_initclient_recunit_no"] call A3A_fnc_customHint;} else { if (A3A_GUIDevPreview) then {createDialog "A3A_RecruitDialog";} else {[] spawn A3A_fnc_unit_recruit;};};},nil,0,false,true,"","!A3A_petrosMoving",4];
-flagx addAction [localize "STR_A3A_fn_init_initClient_addAct_recruitSquad", { createDialog "A3A_RecruitSquadDialog"; },nil,0,false,true,"","A3A_GUIDevPreview and (_this == theBoss) and !A3A_petrosMoving",4];
+flagX addAction [localize "STR_A3A_fn_init_initclient_addact_recruit", { if ([getPosATL player] call A3A_fnc_enemyNearCheck) then {[localize "STR_A3A_fn_init_initclient_recunit", localize "STR_A3A_fn_init_initclient_recunit_no"] call A3A_fnc_customHint;} else { createDialog "A3A_RecruitDialog"; };},nil,0,false,true,"","!A3A_petrosMoving",4];
+flagx addAction [localize "STR_A3A_fn_init_initClient_addAct_recruitSquad", { createDialog "A3A_RecruitSquadDialog"; },nil,0,false,true,"","(_this == theBoss) and !A3A_petrosMoving",4];
 
 //Adds a light to the flag
 private _flagLight = "#lightpoint" createVehicle (getPos flagX);
@@ -374,9 +330,4 @@ if (player == theBoss) then {
     ["commander",true] call A3A_fnc_unitTraits;
 } else {
     createDialog "A3A_RoleSelectDialog"; // player will be commander if they set up the game
-};
-
-if(!isMultiplayer) then
-{
-    [] spawn A3A_fnc_singlePlayerBlackScreenWarning;
 };

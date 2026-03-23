@@ -58,6 +58,7 @@ if (alive _station) then {
         _unit setDir (_station getRelDir _x);
         [_unit, _marker] call A3A_fnc_NATOinit;
         _unit setUnitPos "UP";
+        _unit setVariable ["A3A_forcedStance", "UP"];
         dostop _unit;
     } forEach _unitPositions;
     _stationUsed = true;
@@ -97,8 +98,8 @@ if ((random 10 < 2.5) and !("Sniper" in _unitTypes#0)) then {
     [_dog] spawn A3A_fnc_guardDog;
 };
 
-// TODO: should probably store the city radius
-[_group, "Patrol_Area", 0, 250, -1, false, markerPos _marker, false, false] call A3A_fnc_patrolLoop;
+private _cityRad = selectMax markerSize _marker;
+[_group, "Patrol_Area", 0, _cityRad, -1, true, markerPos _marker, true, false] call A3A_fnc_patrolLoop;
 
 
 // Next, attempt to spawn in a building somewhere in the town
